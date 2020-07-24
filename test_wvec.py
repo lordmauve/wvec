@@ -7,6 +7,8 @@ from wvec import Vector2 as v
 floats = st.floats(
     allow_nan=False,
     allow_infinity=False,
+    min_value=-1e100,
+    max_value=1e100,
 )
 inf = float('inf')
 
@@ -50,12 +52,14 @@ def test_iter():
 def test_length(x, y):
     """We can get the length of a vector."""
     vec = v(x, y)
-    assert vec.length() == hypot(x, y)
+    assert vec.length() == approx(hypot(x, y))
 
 
 @given(x=floats, y=floats)
 def test_normalized(x, y):
     """We can normalize a vector."""
     vec = v(x, y)
+    if vec.is_zero():
+        return
     r, theta = vec.to_polar()
     assert vec.normalized().to_polar() == approx((1.0, theta))

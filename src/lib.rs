@@ -19,6 +19,12 @@ struct Vector2 {
 }
 
 
+/// Get the zero vector
+fn zero() -> Vector2 {
+    Vector2 { x: 0.0, y: 0.0 }
+}
+
+
 #[pymethods]
 impl Vector2 {
     #[new]
@@ -39,6 +45,10 @@ impl Vector2 {
         Ok(Vector2 {x, y})
     }
 
+    fn is_zero(&self) -> bool {
+        return self.x == 0.0 && self.y == 0.0
+    }
+
     fn length_squared(&self) -> f64 {
         self.dot(&self)
     }
@@ -56,6 +66,9 @@ impl Vector2 {
     }
 
     fn normalized(&self) -> Self {
+        if self.is_zero() {
+            return Vector2 { x: 1.0, y: 0.0 }
+        }
         let mag = self.length();
 
         Vector2 {
