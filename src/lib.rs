@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 use pyo3::PyObjectProtocol;
 use pyo3::PyIterProtocol;
 use pyo3::exceptions;
-use pyo3::types::{PyTuple, PyFloat, PyBool};
+use pyo3::types::PyBool;
 use pyo3::class::number::PyNumberProtocol;
 use pyo3::class::sequence::PySequenceProtocol;
 use pyo3::class::basic::CompareOp;
@@ -19,12 +19,6 @@ struct Vector2 {
 }
 
 
-/// Get the zero vector
-fn zero() -> Vector2 {
-    Vector2 { x: 0.0, y: 0.0 }
-}
-
-
 #[pymethods]
 impl Vector2 {
     #[new]
@@ -38,6 +32,8 @@ impl Vector2 {
         }
     }
 
+    /// Construct a new cartesian vector from r (length) and theta (angle).
+    #[text_signature = "(r: float, theta: float)"]
     #[staticmethod]
     fn from_polar(r: f64, theta: f64) -> PyResult<Self> {
         let x = r * theta.cos();
@@ -45,26 +41,41 @@ impl Vector2 {
         Ok(Vector2 {x, y})
     }
 
+    /// Return True if this vector is the zero vector.
+    ///
+    /// Note that bool(vec) will always return True, because a Vector2 is a
+    /// sequence of length 2.
     fn is_zero(&self) -> bool {
         return self.x == 0.0 && self.y == 0.0
     }
 
+    /// Return the length of the vector, squared.
+    ///
+    /// This is minutely faster than getting the length and is sufficient for
+    /// some comparison purposes.
     fn length_squared(&self) -> f64 {
         self.dot(&self)
     }
 
+    /// Return the length of the vector.
     fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
+    /// Return the angle this vector makes to the positive x axis.
     fn angle(&self) -> f64 {
         self.y.atan2(self.x)
     }
 
+    /// Return a tuple (r, theta) giving a polar representation of this vector.
     fn to_polar(&self) -> (f64, f64) {
         (self.length(), self.angle())
     }
 
+    /// Return a normalized copy of this vector.
+    ///
+    /// If the vector is of zero length then an arbitrary zero-length vector
+    /// is returned.
     fn normalized(&self) -> Self {
         if self.is_zero() {
             return Vector2 { x: 1.0, y: 0.0 }
@@ -86,7 +97,7 @@ impl Vector2 {
 #[pyproto]
 impl PyObjectProtocol for Vector2 {
     fn __repr__(&self) -> String {
-        format!("v({}, {})", self.x, self.y)
+        format!("Vector2({}, {})", self.x, self.y)
     }
 
     fn __str__(&self) -> String {
@@ -132,6 +143,13 @@ impl PyNumberProtocol for Vector2 {
         Vector2 {
             x: lhs.x + rhs.x,
             y: lhs.y + rhs.y,
+        }
+    }
+
+   fn __mul__(lhs: PyRef<'p, Vector2>, rhs: f64) -> Vector2 {
+        Vector2 {
+            x: lhs.x * rhs,
+            y: lhs.y * rhs,
         }
     }
 }
@@ -183,22 +201,7 @@ impl PyIterProtocol for Vector2 {
 
 #[pymodule]
 fn wvec(_py: Python, m: &PyModule) -> PyResult<()> {
-    // PyO3 aware function. All of our Python interfaces could be declared in a separate module.
-    // Note that the `#[pyfn()]` annotation automatically converts the arguments from
-    // Python objects to Rust values, and the Rust return value back into a Python object.
-    // The `_py` argument represents that we're holding the GIL.
-    #[pyfn(m, "sum_as_string")]
-    fn sum_as_string_py(_py: Python, a: i64, b: i64) -> PyResult<String> {
-        let out = sum_as_string(a, b);
-        Ok(out)
-    }
-
     m.add_class::<Vector2>()?;
 
     Ok(())
-}
-
-// logic implemented as a normal Rust function
-fn sum_as_string(a: i64, b: i64) -> String {
-    format!("{}", a + b)
 }

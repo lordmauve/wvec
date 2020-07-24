@@ -7,3 +7,9 @@
 
 #/target
 Cargo.lock
+src/lib.rs
+
+*.pyc
+
+/.hypothesis
+/venv
