@@ -1,0 +1,19 @@
+[package]
+name = "bestvec"
+version = "0.1.0"
+authors = ["Daniel Pope <mauve@mauveweb.co.uk>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+pyo3 = "0.11.1"
+
+
+[lib]
+name = "wvec"
+crate-type = ["rlib", "cdylib"]
+
+
+[features]
+default = ["pyo3/extension-module"]
